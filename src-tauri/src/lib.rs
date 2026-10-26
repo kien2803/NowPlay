@@ -77,7 +77,24 @@ pub fn run() {
             .build()?;
 
             // Restore the last dragged position (or center on first run).
-            match window_pos::load(&app_handle) {
+            // If the saved point is off every connected monitor — e.g. an
+            // external display was unplugged — center instead of
+            // restoring an unreachable position.
+            let saved_pos = window_pos::load(&app_handle).filter(|&(x, y)| {
+                app_handle
+                    .available_monitors()
+                    .unwrap_or_default()
+                    .iter()
+                    .any(|m| {
+                        let p = m.position();
+                        let s = m.size();
+                        x >= p.x
+                            && x < p.x + s.width as i32
+                            && y >= p.y
+                            && y < p.y + s.height as i32
+                    })
+            });
+            match saved_pos {
                 Some((x, y)) => {
                     let _ = win.set_position(PhysicalPosition::new(x, y));
                 }
@@ -108,14 +125,27 @@ pub fn run() {
 
             // --- System tray ---
             let show = MenuItem::with_id(app, "show", "Show / Hide", true, None::<&str>)?;
+            let center = MenuItem::with_id(app, "center", "Center Window", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show, &quit])?;
+            let menu = Menu::with_items(app, &[&show, &center, &quit])?;
             TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
                 .tooltip("NowPlay")
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => toggle_window(app),
+                    "center" => {
+                        // Rescue for a window lost off-screen: re-center,
+                        // show it, and persist the new position.
+                        if let Some(w) = app.get_webview_window("player") {
+                            let _ = w.center();
+                            let _ = w.show();
+                            let _ = w.set_focus();
+                            if let Ok(pos) = w.outer_position() {
+                                window_pos::save_final(app, pos.x, pos.y);
+                            }
+                        }
+                    }
                     "quit" => app.exit(0),
                     _ => {}
                 })
