@@ -1,0 +1,33 @@
+[package]
+name = "nowplay"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77.2"
+description = "Cross-platform floating mini player (MPRIS on Linux, AppleScript on macOS)"
+license = "MIT"
+repository = "https://github.com/kien2803/NowPlay"
+
+[lib]
+name = "nowplay_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png", "protocol-asset"] }
+tauri-plugin-global-shortcut = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# MPRIS2 over D-Bus — native, no playerctl subprocess needed.
+mpris = "2"
+
+[profile.dev]
+incremental = true
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3

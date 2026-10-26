@@ -1,0 +1,23 @@
+# Rust
+target/
+src-tauri/target/
+**/*.rs.bk
+
+# Node / frontend
+node_modules/
+dist/
+*.local
+
+# Tauri
+src-tauri/gen/schemas/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Logs
+*.log

@@ -1,0 +1,19 @@
+:root {
+  --accent: #7c6cf0;
+  --bg: rgba(22, 22, 28, 0.82);
+  --fg: #f4f4f6;
+  --fg-dim: rgba(244, 244, 246, 0.55);
+  --radius: 20px;
+  font-family: "Inter", "Segoe UI", "Noto Sans", system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app { width: 100vw; height: 100vh; }

@@ -1,0 +1,142 @@
+<script lang="ts">
+  import type { PlayerState } from "./types";
+  import Controls from "./Controls.svelte";
+  import ProgressBar from "./ProgressBar.svelte";
+  import VolumeControl from "./VolumeControl.svelte";
+  import { convertFileSrc } from "@tauri-apps/api/core";
+  import { accent, compact } from "./stores";
+  import { dominantColor } from "./accent";
+
+  let { state }: { state: PlayerState } = $props();
+
+  // MPRIS art can be remote (https://i.scdn.co/...) or a local file://
+  // path (browsers cache art on disk). file:// URLs are CSP-blocked in
+  // the webview — route them through Tauri's asset protocol instead.
+  const art = $derived.by(() => {
+    const url = state.metadata.artUrl;
+    if (!url) return undefined;
+    if (url.startsWith("file://")) return convertFileSrc(url.slice(7));
+    if (url.startsWith("/")) return convertFileSrc(url);
+    return url;
+  });
+  const playing = $derived(state.status === "playing");
+
+  // Extract accent color whenever the album art changes.
+  $effect(() => {
+    if (art) {
+      dominantColor(art).then((c) => c && accent.set(c));
+    }
+  });
+</script>
+
+<div class="card" class:compact={$compact} data-tauri-drag-region>
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="art-wrap" ondblclick={() => compact.update((c) => !c)} title="Double-click for compact mode">
+    {#if art}
+      <img class="art" src={art} alt="" draggable="false" />
+    {:else}
+      <div class="art placeholder">
+        <svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3z" fill="currentColor"/></svg>
+      </div>
+    {/if}
+  </div>
+
+  <div class="info" data-tauri-drag-region>
+    <div class="meta" data-tauri-drag-region>
+      <span class="title" class:dim={!playing}>{state.metadata.title ?? "Unknown title"}</span>
+      <span class="artist">{state.metadata.artist ?? state.playerName}</span>
+    </div>
+    <Controls {state} />
+  </div>
+
+  <div class="bottom" data-tauri-drag-region>
+    <ProgressBar {state} />
+    {#if state.volume !== null}
+      <VolumeControl {state} />
+    {/if}
+    <span class="player-chip">{state.playerName}</span>
+  </div>
+</div>
+
+<style>
+  .card {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    grid-template-rows: 1fr auto;
+    gap: 6px 12px;
+    width: 100%; height: 100%;
+    padding: 14px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: grab;
+    overflow: hidden;
+  }
+  .card:active { cursor: grabbing; }
+
+  .art-wrap { grid-row: 1 / 3; align-self: center; }
+  .art {
+    width: 100px; height: 100px;
+    object-fit: cover;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    pointer-events: none;
+    animation: pop 0.25s ease;
+  }
+  .art.placeholder {
+    display: grid; place-items: center;
+    background: rgba(255,255,255,0.07);
+    color: var(--fg-dim);
+  }
+  .art.placeholder svg { width: 40px; height: 40px; }
+  @keyframes pop {
+    from { transform: scale(0.92); opacity: 0.4; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .info {
+    display: flex; align-items: center; justify-content: space-between;
+    min-width: 0; gap: 8px;
+  }
+  .meta { display: flex; flex-direction: column; min-width: 0; }
+  .title {
+    font-size: 14px; font-weight: 600; color: var(--fg);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .title.dim { color: var(--fg-dim); }
+  .artist {
+    font-size: 12px; color: var(--fg-dim);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .bottom {
+    display: flex; align-items: center; gap: 10px;
+    min-width: 0;
+  }
+  .player-chip {
+    font-size: 9px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--fg-dim);
+    background: rgba(255,255,255,0.07);
+    padding: 2px 7px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+
+  /* --- Compact "pill" mode: art + controls only --- */
+  .card.compact {
+    grid-template-columns: 48px 1fr;
+    grid-template-rows: 1fr;
+    padding: 8px;
+    gap: 10px;
+    border-radius: 16px;
+  }
+  .card.compact .art-wrap { grid-row: 1; }
+  .card.compact .art { width: 48px; height: 48px; border-radius: 10px; }
+  .card.compact .art.placeholder svg { width: 22px; height: 22px; }
+  .card.compact .meta { display: none; }
+  .card.compact .bottom { display: none; }
+  .card.compact .info { justify-content: center; }
+</style>
