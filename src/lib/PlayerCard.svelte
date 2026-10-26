@@ -21,6 +21,14 @@
   });
   const playing = $derived(state.status === "playing");
 
+  // If the art URL 404s (e.g. a browser rotated its MPRIS cache file),
+  // fall back to the placeholder instead of showing an empty square.
+  let artFailed = $state(false);
+  $effect(() => {
+    art; artFailed = false; // reset when the URL changes
+  });
+  const showArt = $derived(art && !artFailed);
+
   // Extract accent color whenever the album art changes.
   $effect(() => {
     if (art) {
@@ -32,8 +40,8 @@
 <div class="card" class:compact={$compact} data-tauri-drag-region>
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="art-wrap" ondblclick={() => compact.update((c) => !c)} title="Double-click for compact mode">
-    {#if art}
-      <img class="art" src={art} alt="" draggable="false" />
+    {#if showArt}
+      <img class="art" src={art} alt="" draggable="false" onerror={() => (artFailed = true)} />
     {:else}
       <div class="art placeholder">
         <svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3z" fill="currentColor"/></svg>

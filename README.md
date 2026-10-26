@@ -12,9 +12,7 @@ Always-on-top • hotkey-toggleable • works with any player
 ![License](https://img.shields.io/badge/license-MIT-green)
 [![CI](https://github.com/kien2803/NowPlay/actions/workflows/ci.yml/badge.svg)](https://github.com/kien2803/NowPlay/actions/workflows/ci.yml)
 
-<!-- TODO: screenshot
 <img src="docs/screenshot.png" width="420" alt="NowPlay floating player">
--->
 
 </div>
 
