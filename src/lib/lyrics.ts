@@ -27,6 +27,17 @@ export function parseLrc(lrc: string): LrcLine[] {
   return out.sort((a, b) => a.t - b.t);
 }
 
+interface LrcEntry {
+  syncedLyrics?: string | null;
+  plainLyrics?: string | null;
+}
+
+function toLyrics(j: LrcEntry): Lyrics | null {
+  const synced = j.syncedLyrics ? parseLrc(j.syncedLyrics) : null;
+  const plain = j.plainLyrics || null;
+  return synced || plain ? { synced, plain } : null;
+}
+
 export async function fetchLyrics(
   title: string,
   artist: string,
@@ -34,19 +45,34 @@ export async function fetchLyrics(
   durationMs: number,
 ): Promise<Lyrics | null> {
   try {
-    const q = new URLSearchParams({
+    // Exact lookup — 404s when duration is off by >2s or metadata
+    // doesn't match their record, so fall back to search.
+    const exact = new URLSearchParams({
       track_name: title,
       artist_name: artist,
       album_name: album,
       duration: String(Math.round(durationMs / 1000)),
     });
-    const res = await fetch(`https://lrclib.net/api/get?${q}`);
-    if (!res.ok) return null;
-    const j = await res.json();
-    return {
-      synced: j.syncedLyrics ? parseLrc(j.syncedLyrics) : null,
-      plain: j.plainLyrics || null,
-    };
+    const res = await fetch(`https://lrclib.net/api/get?${exact}`);
+    if (res.ok) {
+      const l = toLyrics(await res.json());
+      if (l) return l;
+    }
+
+    const search = new URLSearchParams({
+      track_name: title,
+      artist_name: artist,
+    });
+    const res2 = await fetch(`https://lrclib.net/api/search?${search}`);
+    if (!res2.ok) return null;
+    const hits: LrcEntry[] = await res2.json();
+    if (!Array.isArray(hits)) return null;
+    // Prefer a hit that has synced lyrics.
+    for (const h of hits) {
+      const l = toLyrics(h);
+      if (l?.synced) return l;
+    }
+    return hits.length ? toLyrics(hits[0]) : null;
   } catch {
     return null;
   }

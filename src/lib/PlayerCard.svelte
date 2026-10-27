@@ -57,12 +57,12 @@
   <div class="info" data-tauri-drag-region>
     <div class="meta" data-tauri-drag-region>
       <span class="title" class:dim={!playing}>{player.metadata.title ?? "Unknown title"}</span>
-      <span class="artist-row">
+      <div class="artist-row">
         {#if $settings.visualizer}
           <Visualizer {playing} />
         {/if}
         <span class="artist">{player.metadata.artist ?? player.playerName}</span>
-      </span>
+      </div>
     </div>
     <Controls state={player} />
   </div>
