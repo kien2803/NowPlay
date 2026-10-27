@@ -43,8 +43,13 @@ impl PlayerManager {
 
     fn run(&self) {
         loop {
-            let players = self.discover();
-            let state = self.pick_active(&players).map(|p| p.snapshot());
+            // Snapshot every player exactly once per tick — each snapshot
+            // is several D-Bus calls, so re-snapshotting during selection
+            // (filter + chosen player) would roughly double our traffic.
+            let snaps = self.snapshots();
+            let state = self
+                .pick_active(&snaps)
+                .map(|(_, snap)| snap.clone());
             self.emit(state);
             thread::sleep(TICK);
         }
@@ -52,6 +57,16 @@ impl PlayerManager {
 
     fn discover(&self) -> Vec<Box<dyn MediaPlayer>> {
         self.sources.iter().flat_map(|s| s.discover()).collect()
+    }
+
+    fn snapshots(&self) -> Vec<(Box<dyn MediaPlayer>, super::model::PlayerState)> {
+        self.discover()
+            .into_iter()
+            .map(|p| {
+                let s = p.snapshot();
+                (p, s)
+            })
+            .collect()
     }
 
     /// Preference ranking: lower is better. Players whose id contains
@@ -70,38 +85,38 @@ impl PlayerManager {
 
     fn pick_active<'a>(
         &self,
-        players: &'a [Box<dyn MediaPlayer>],
-    ) -> Option<&'a dyn MediaPlayer> {
-        if players.is_empty() {
+        snaps: &'a [(Box<dyn MediaPlayer>, super::model::PlayerState)],
+    ) -> Option<&'a (Box<dyn MediaPlayer>, super::model::PlayerState)> {
+        if snaps.is_empty() {
             return None;
         }
 
         let mut active_id = self.active_id.lock().unwrap();
 
         // Prefer the highest-ranked player that is actually playing.
-        if let Some(p) = players
+        if let Some(pair) = snaps
             .iter()
-            .filter(|p| p.snapshot().status == PlaybackStatus::Playing)
-            .min_by_key(|p| Self::preference_rank(&p.id()))
+            .filter(|(_, s)| s.status == PlaybackStatus::Playing)
+            .min_by_key(|(p, _)| Self::preference_rank(&p.id()))
         {
-            *active_id = Some(p.id());
-            return Some(&**p);
+            *active_id = Some(pair.0.id());
+            return Some(pair);
         }
 
         // Stick with the previous player if it's still around.
         if let Some(id) = active_id.as_deref() {
-            if let Some(p) = players.iter().find(|p| p.id() == id) {
-                return Some(&**p);
+            if let Some(pair) = snaps.iter().find(|(p, _)| p.id() == id) {
+                return Some(pair);
             }
         }
 
         // Nothing is playing — fall back to the best-ranked player.
-        let p = players
+        let pair = snaps
             .iter()
-            .min_by_key(|p| Self::preference_rank(&p.id()))
+            .min_by_key(|(p, _)| Self::preference_rank(&p.id()))
             .unwrap();
-        *active_id = Some(p.id());
-        Some(&**p)
+        *active_id = Some(pair.0.id());
+        Some(pair)
     }
 
     fn emit<T: Serialize + Clone>(&self, payload: T) {
@@ -115,9 +130,9 @@ impl PlayerManager {
     /// Re-discovers each time so controls keep working even if the
     /// polling tick hasn't refreshed the player list yet.
     pub fn with_active(&self, f: impl FnOnce(&dyn MediaPlayer)) {
-        let players = self.discover();
-        if let Some(p) = self.pick_active(&players) {
-            f(p);
+        let snaps = self.snapshots();
+        if let Some((p, _)) = self.pick_active(&snaps) {
+            f(&**p);
         }
     }
 }
