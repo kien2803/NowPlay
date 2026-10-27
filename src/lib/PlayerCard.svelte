@@ -3,23 +3,25 @@
   import Controls from "./Controls.svelte";
   import ProgressBar from "./ProgressBar.svelte";
   import VolumeControl from "./VolumeControl.svelte";
+  import LyricsPanel from "./LyricsPanel.svelte";
   import { convertFileSrc } from "@tauri-apps/api/core";
-  import { accent, compact } from "./stores";
+  import { accent, compact, showLyrics } from "./stores";
   import { dominantColor } from "./accent";
 
-  let { state }: { state: PlayerState } = $props();
+  // NB: prop renamed locally — `$state` would clash with a `state` var.
+  let { state: player }: { state: PlayerState } = $props();
 
   // MPRIS art can be remote (https://i.scdn.co/...) or a local file://
   // path (browsers cache art on disk). file:// URLs are CSP-blocked in
   // the webview — route them through Tauri's asset protocol instead.
   const art = $derived.by(() => {
-    const url = state.metadata.artUrl;
+    const url = player.metadata.artUrl;
     if (!url) return undefined;
     if (url.startsWith("file://")) return convertFileSrc(url.slice(7));
     if (url.startsWith("/")) return convertFileSrc(url);
     return url;
   });
-  const playing = $derived(state.status === "playing");
+  const playing = $derived(player.status === "playing");
 
   // If the art URL 404s (e.g. a browser rotated its MPRIS cache file),
   // fall back to the placeholder instead of showing an empty square.
@@ -51,19 +53,31 @@
 
   <div class="info" data-tauri-drag-region>
     <div class="meta" data-tauri-drag-region>
-      <span class="title" class:dim={!playing}>{state.metadata.title ?? "Unknown title"}</span>
-      <span class="artist">{state.metadata.artist ?? state.playerName}</span>
+      <span class="title" class:dim={!playing}>{player.metadata.title ?? "Unknown title"}</span>
+      <span class="artist">{player.metadata.artist ?? player.playerName}</span>
     </div>
-    <Controls {state} />
+    <Controls state={player} />
   </div>
 
   <div class="bottom" data-tauri-drag-region>
-    <ProgressBar {state} />
-    {#if state.volume !== null}
-      <VolumeControl {state} />
+    <ProgressBar state={player} />
+    {#if player.volume !== null}
+      <VolumeControl state={player} />
     {/if}
-    <span class="player-chip">{state.playerName}</span>
+    <button
+      class="player-chip lyrics-btn"
+      class:on={$showLyrics}
+      onclick={() => { compact.set(false); showLyrics.update((v) => !v); }}
+      title="Toggle lyrics"
+    >♪</button>
+    <span class="player-chip">{player.playerName}</span>
   </div>
+
+  {#if $showLyrics}
+    <div class="lyrics-row">
+      <LyricsPanel state={player} />
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -147,4 +161,17 @@
   .card.compact .meta { display: none; }
   .card.compact .bottom { display: none; }
   .card.compact .info { justify-content: center; }
+
+  /* --- Lyrics row (spans full card width under the controls) --- */
+  .lyrics-row { grid-column: 1 / 3; }
+  .player-chip.lyrics-btn {
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+  }
+  .player-chip.lyrics-btn.on {
+    color: #fff;
+    background: var(--accent);
+  }
 </style>

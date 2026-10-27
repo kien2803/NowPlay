@@ -7,6 +7,8 @@ export const playerState = writable<PlayerState | null>(null);
 export const accent = writable<string>("#7c6cf0");
 /** Compact "pill" mode — small art + controls only. */
 export const compact = writable<boolean>(false);
+/** Lyrics panel visible under the card. */
+export const showLyrics = writable<boolean>(false);
 
 let hadPlayer = false;
 

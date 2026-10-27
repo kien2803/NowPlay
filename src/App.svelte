@@ -1,15 +1,21 @@
 <script lang="ts">
   import { getCurrentWindow } from "@tauri-apps/api/window";
   import { LogicalSize } from "@tauri-apps/api/dpi";
-  import { playerState, accent, compact } from "./lib/stores";
+  import { playerState, accent, compact, showLyrics } from "./lib/stores";
   import PlayerCard from "./lib/PlayerCard.svelte";
 
   // Window sizes for each mode (must match the card layouts).
   const SIZE_FULL = new LogicalSize(400, 132);
+  const SIZE_LYRICS = new LogicalSize(400, 132 + 196);
   const SIZE_COMPACT = new LogicalSize(232, 72);
 
   $effect(() => {
-    getCurrentWindow().setSize($compact ? SIZE_COMPACT : SIZE_FULL);
+    const size = $compact
+      ? SIZE_COMPACT
+      : $showLyrics
+        ? SIZE_LYRICS
+        : SIZE_FULL;
+    getCurrentWindow().setSize(size);
   });
 </script>
 

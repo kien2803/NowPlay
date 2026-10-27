@@ -13,7 +13,7 @@
     "withGlobalTauri": false,
     "windows": [],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' https: http: data: asset: blob:; style-src 'self' 'unsafe-inline'",
+      "csp": "default-src 'self'; img-src 'self' https: http: data: asset: blob:; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http: ipc: tauri: asset:",
       "assetProtocol": {
         "enable": true,
         "scope": ["**"]
