@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
-# Installs the NowPlay lockscreen layer as a user-local override of the
-# Plasma shell package. No root needed. Safe: the greeter falls back to
-# the stock lockscreen if the override is ever incompatible.
+# Installs the NowPlay lockscreen layer as a user-local Plasma/Shell
+# package registered via kpackagetool6. No root needed. Safe: the
+# greeter falls back to the stock lockscreen if the override is ever
+# incompatible.
+#
+# NOTE: simply copying files into ~/.local/share/plasma/shells does
+# NOT work — the package must be installed through kpackagetool6 so
+# KPackage registers it, otherwise the real lockscreen keeps loading
+# the system package.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -14,11 +20,11 @@ if [ ! -d "$SRC" ]; then
     exit 1
 fi
 
-# Copy the stock shell package locally (only done once; an existing
-# override is respected so user's other tweaks survive).
 if [ ! -d "$DEST" ]; then
-    cp -r "$SRC" "$DEST"
-    echo "copied shell package -> $DEST"
+    kpackagetool6 --type Plasma/Shell --install "$SRC"
+    echo "installed user shell package -> $DEST"
+else
+    echo "user shell package already present, patching in place"
 fi
 
 cp "$HERE/NowPlayMedia.qml" "$DEST/contents/lockscreen/"
