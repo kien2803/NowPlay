@@ -36,6 +36,10 @@
 
   // Extract accent color whenever the album art changes.
   $effect(() => {
+    if (!$settings.accentFromArt) {
+      accent.set("#7c6cf0");
+      return;
+    }
     if (art) {
       dominantColor(art).then((c) => c && accent.set(c));
     }

@@ -5,8 +5,12 @@
 }
 
 /* Theme palettes. `system` resolves to the OS preference in stores.ts. */
+:root {
+  --bg-opacity: 0.85;
+}
+
 :root[data-theme="dark"] {
-  --bg: rgba(22, 22, 28, 0.82);
+  --bg: rgba(22, 22, 28, var(--bg-opacity));
   --fg: #f4f4f6;
   --fg-dim: rgba(244, 244, 246, 0.55);
   --fill: rgba(255, 255, 255, 0.15);
@@ -16,7 +20,7 @@
 }
 
 :root[data-theme="light"] {
-  --bg: rgba(245, 245, 250, 0.85);
+  --bg: rgba(245, 245, 250, var(--bg-opacity));
   --fg: #1c1c22;
   --fg-dim: rgba(28, 28, 34, 0.55);
   --fill: rgba(0, 0, 0, 0.14);

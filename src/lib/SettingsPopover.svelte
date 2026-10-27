@@ -9,24 +9,37 @@
     { id: "system", label: "System" },
   ];
 
-  function toggle(key: "visualizer" | "lyricsAutoOpen") {
+  function toggle(key: "visualizer" | "lyricsAutoOpen" | "accentFromArt" | "alwaysOnTop" | "autoShowOnPlay") {
     settings.update((s) => ({ ...s, [key]: !s[key] }));
   }
+
+  const toggles: { key: "visualizer" | "lyricsAutoOpen" | "accentFromArt" | "alwaysOnTop" | "autoShowOnPlay"; label: string }[] = [
+    { key: "visualizer", label: "Visualizer" },
+    { key: "lyricsAutoOpen", label: "Auto-open lyrics" },
+    { key: "accentFromArt", label: "Accent from album art" },
+    { key: "alwaysOnTop", label: "Always on top" },
+    { key: "autoShowOnPlay", label: "Auto-show on play" },
+  ];
 </script>
 
 <button class="backdrop" onclick={onclose} aria-label="Close settings"></button>
 <div class="popover">
+  {#each toggles as t}
+    <div class="row">
+      <span>{t.label}</span>
+      <button class="switch" class:on={$settings[t.key]} onclick={() => toggle(t.key)} aria-label={t.label}>
+        <i></i>
+      </button>
+    </div>
+  {/each}
   <div class="row">
-    <span>Visualizer</span>
-    <button class="switch" class:on={$settings.visualizer} onclick={() => toggle("visualizer")} aria-label="Toggle visualizer">
-      <i></i>
-    </button>
-  </div>
-  <div class="row">
-    <span>Auto-open lyrics</span>
-    <button class="switch" class:on={$settings.lyricsAutoOpen} onclick={() => toggle("lyricsAutoOpen")} aria-label="Toggle auto lyrics">
-      <i></i>
-    </button>
+    <span>Opacity</span>
+    <input
+      class="slider"
+      type="range" min="0.4" max="1" step="0.05"
+      value={$settings.bgOpacity}
+      oninput={(e) => settings.update((s) => ({ ...s, bgOpacity: parseFloat((e.target as HTMLInputElement).value) }))}
+    />
   </div>
   <div class="row">
     <span>Theme</span>
@@ -114,5 +127,22 @@
   .seg button.on {
     background: var(--accent);
     color: #fff;
+  }
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 90px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--fill);
+    outline: none;
+    cursor: pointer;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
   }
 </style>

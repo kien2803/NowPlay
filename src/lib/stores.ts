@@ -41,15 +41,33 @@ export interface Settings {
   visualizer: boolean;
   /** Auto-open the lyrics panel whenever a new track starts. */
   lyricsAutoOpen: boolean;
+  /** Tint controls with the album art's dominant color. */
+  accentFromArt: boolean;
+  /** Keep the window above other windows. */
+  alwaysOnTop: boolean;
+  /** Pop the window in when playback starts after being hidden. */
+  autoShowOnPlay: boolean;
+  /** Card background opacity 0.4–1. */
+  bgOpacity: number;
 }
 export const settings = writable<Settings>({
   visualizer: true,
   lyricsAutoOpen: false,
+  accentFromArt: true,
+  alwaysOnTop: true,
+  autoShowOnPlay: true,
+  bgOpacity: 0.85,
   ...JSON.parse(localStorage.getItem("nowplay:settings") ?? "{}"),
 });
-settings.subscribe((s) =>
-  localStorage.setItem("nowplay:settings", JSON.stringify(s)),
-);
+settings.subscribe((s) => {
+  localStorage.setItem("nowplay:settings", JSON.stringify(s));
+  // Live-apply window-level settings.
+  getCurrentWindow().setAlwaysOnTop(s.alwaysOnTop);
+  document.documentElement.style.setProperty(
+    "--bg-opacity",
+    String(s.bgOpacity),
+  );
+});
 
 let hadPlayer = false;
 
@@ -65,7 +83,12 @@ listen<PlayerState | null>("player-state", async (e) => {
   } else {
     // Auto-pop only on the "no player -> playing" transition, so a
     // manually-hidden window is not forced back open every tick.
-    if (!hadPlayer && e.payload.status === "playing" && !wasVisible) {
+    if (
+      get(settings).autoShowOnPlay &&
+      !hadPlayer &&
+      e.payload.status === "playing" &&
+      !wasVisible
+    ) {
       win.show();
     }
     hadPlayer = true;
