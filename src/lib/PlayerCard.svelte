@@ -4,8 +4,10 @@
   import ProgressBar from "./ProgressBar.svelte";
   import VolumeControl from "./VolumeControl.svelte";
   import LyricsPanel from "./LyricsPanel.svelte";
+  import Visualizer from "./Visualizer.svelte";
+  import SettingsPopover from "./SettingsPopover.svelte";
   import { convertFileSrc } from "@tauri-apps/api/core";
-  import { accent, compact, showLyrics, theme, type Theme } from "./stores";
+  import { accent, compact, showLyrics, theme, settings, type Theme } from "./stores";
   import { dominantColor } from "./accent";
 
   // NB: prop renamed locally — `$state` would clash with a `state` var.
@@ -22,6 +24,7 @@
     return url;
   });
   const playing = $derived(player.status === "playing");
+  let showSettings = $state(false);
 
   // If the art URL 404s (e.g. a browser rotated its MPRIS cache file),
   // fall back to the placeholder instead of showing an empty square.
@@ -54,7 +57,12 @@
   <div class="info" data-tauri-drag-region>
     <div class="meta" data-tauri-drag-region>
       <span class="title" class:dim={!playing}>{player.metadata.title ?? "Unknown title"}</span>
-      <span class="artist">{player.metadata.artist ?? player.playerName}</span>
+      <span class="artist-row">
+        {#if $settings.visualizer}
+          <Visualizer {playing} />
+        {/if}
+        <span class="artist">{player.metadata.artist ?? player.playerName}</span>
+      </span>
     </div>
     <Controls state={player} />
   </div>
@@ -78,8 +86,18 @@
         )}
       title="Theme: {$theme} (click to cycle)"
     >{$theme === "dark" ? "☾" : $theme === "light" ? "☀" : "◐"}</button>
+    <button
+      class="player-chip lyrics-btn"
+      class:on={showSettings}
+      onclick={() => (showSettings = !showSettings)}
+      title="Settings"
+    >⚙</button>
     <span class="player-chip">{player.playerName}</span>
   </div>
+
+  {#if showSettings}
+    <SettingsPopover onclose={() => (showSettings = false)} />
+  {/if}
 
   {#if $showLyrics}
     <div class="lyrics-row">
@@ -90,6 +108,7 @@
 
 <style>
   .card {
+    position: relative;
     display: grid;
     grid-template-columns: 100px 1fr;
     grid-template-rows: 1fr auto;
@@ -136,6 +155,10 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .title.dim { color: var(--fg-dim); }
+  .artist-row {
+    display: flex; align-items: center; gap: 6px;
+    min-width: 0;
+  }
   .artist {
     font-size: 12px; color: var(--fg-dim);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;

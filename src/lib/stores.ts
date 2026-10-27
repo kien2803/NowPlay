@@ -35,6 +35,22 @@ matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
     document.documentElement.dataset.theme = resolvedTheme("system");
 });
 
+// --- User settings, persisted in localStorage ---
+export interface Settings {
+  /** Show the animated visualizer while playing. */
+  visualizer: boolean;
+  /** Auto-open the lyrics panel whenever a new track starts. */
+  lyricsAutoOpen: boolean;
+}
+export const settings = writable<Settings>({
+  visualizer: true,
+  lyricsAutoOpen: false,
+  ...JSON.parse(localStorage.getItem("nowplay:settings") ?? "{}"),
+});
+settings.subscribe((s) =>
+  localStorage.setItem("nowplay:settings", JSON.stringify(s)),
+);
+
 let hadPlayer = false;
 
 listen<PlayerState | null>("player-state", async (e) => {
@@ -53,5 +69,9 @@ listen<PlayerState | null>("player-state", async (e) => {
       win.show();
     }
     hadPlayer = true;
+    // Auto-open lyrics on new track if enabled.
+    if (get(settings).lyricsAutoOpen && e.payload.status === "playing") {
+      showLyrics.set(true);
+    }
   }
 });
