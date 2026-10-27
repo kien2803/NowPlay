@@ -41,7 +41,7 @@
     display: grid; place-items: center;
     background: var(--bg);
     border-radius: var(--radius);
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
     color: var(--fg-dim);
     font-size: 12px;
   }

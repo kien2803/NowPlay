@@ -1,10 +1,28 @@
 :root {
   --accent: #7c6cf0;
+  --radius: 20px;
+  font-family: "Inter", "Segoe UI", "Noto Sans", system-ui, sans-serif;
+}
+
+/* Theme palettes. `system` resolves to the OS preference in stores.ts. */
+:root[data-theme="dark"] {
   --bg: rgba(22, 22, 28, 0.82);
   --fg: #f4f4f6;
   --fg-dim: rgba(244, 244, 246, 0.55);
-  --radius: 20px;
-  font-family: "Inter", "Segoe UI", "Noto Sans", system-ui, sans-serif;
+  --fill: rgba(255, 255, 255, 0.15);
+  --hover: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.08);
+  --chip-bg: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme="light"] {
+  --bg: rgba(245, 245, 250, 0.85);
+  --fg: #1c1c22;
+  --fg-dim: rgba(28, 28, 34, 0.55);
+  --fill: rgba(0, 0, 0, 0.14);
+  --hover: rgba(0, 0, 0, 0.08);
+  --border: rgba(0, 0, 0, 0.09);
+  --chip-bg: rgba(0, 0, 0, 0.06);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

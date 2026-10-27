@@ -31,3 +31,9 @@ sudo dnf install -y webkit2gtk4.1-devel gtk3-devel libsoup3-devel openssl-devel 
 - Toggle hotkey: Ctrl+Shift+Space (hardcoded in `src-tauri/src/lib.rs`).
 - Tray icon: left-click toggles window; menu has Show/Hide + Quit.
 - CSP in `tauri.conf.json` allows `https:`/`http:` images for remote album art.
+
+## Theme
+- Dark/light/system via `theme` store (`stores.ts`), persisted in localStorage `nowplay:theme`. Toggle: chip button in bottom row cycles dark → light → system. CSS vars live in `src/styles.css` (`--bg`, `--fg`, `--fg-dim`, `--fill`, `--hover`, `--border`, `--chip-bg`) — never hardcode `rgba(255,255,255,x)` in components.
+
+## Lyrics
+- `src/lib/lyrics.ts` fetches lrclib.net (synced LRC preferred, plain fallback); `LyricsPanel.svelte` auto-scrolls to the active line by `positionMs`. Toggle: ♪ chip. Window grows to `SIZE_LYRICS` in `App.svelte`.

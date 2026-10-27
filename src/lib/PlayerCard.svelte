@@ -5,7 +5,7 @@
   import VolumeControl from "./VolumeControl.svelte";
   import LyricsPanel from "./LyricsPanel.svelte";
   import { convertFileSrc } from "@tauri-apps/api/core";
-  import { accent, compact, showLyrics } from "./stores";
+  import { accent, compact, showLyrics, theme, type Theme } from "./stores";
   import { dominantColor } from "./accent";
 
   // NB: prop renamed locally — `$state` would clash with a `state` var.
@@ -70,6 +70,14 @@
       onclick={() => { compact.set(false); showLyrics.update((v) => !v); }}
       title="Toggle lyrics"
     >♪</button>
+    <button
+      class="player-chip lyrics-btn"
+      onclick={() =>
+        theme.update((t: Theme) =>
+          t === "dark" ? "light" : t === "light" ? "system" : "dark",
+        )}
+      title="Theme: {$theme} (click to cycle)"
+    >{$theme === "dark" ? "☾" : $theme === "light" ? "☀" : "◐"}</button>
     <span class="player-chip">{player.playerName}</span>
   </div>
 
@@ -92,7 +100,7 @@
     border-radius: var(--radius);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
     cursor: grab;
     overflow: hidden;
   }
@@ -109,7 +117,7 @@
   }
   .art.placeholder {
     display: grid; place-items: center;
-    background: rgba(255,255,255,0.07);
+    background: var(--chip-bg);
     color: var(--fg-dim);
   }
   .art.placeholder svg { width: 40px; height: 40px; }
@@ -141,7 +149,7 @@
     font-size: 9px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.06em;
     color: var(--fg-dim);
-    background: rgba(255,255,255,0.07);
+    background: var(--chip-bg);
     padding: 2px 7px;
     border-radius: 8px;
     white-space: nowrap;

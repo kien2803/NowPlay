@@ -60,7 +60,7 @@
   .time:last-child { text-align: right; }
   .bar {
     flex: 1; height: 4px;
-    background: rgba(255,255,255,0.15);
+    background: var(--fill);
     border-radius: 2px;
     overflow: hidden;
   }

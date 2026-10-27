@@ -36,7 +36,7 @@
     transition: background 0.15s, transform 0.1s;
   }
   .btn svg { width: 18px; height: 18px; }
-  .btn:hover { background: rgba(255,255,255,0.12); }
+  .btn:hover { background: var(--hover); }
   .btn:active { transform: scale(0.92); }
   .btn:disabled { opacity: 0.35; cursor: default; }
   .btn.play {

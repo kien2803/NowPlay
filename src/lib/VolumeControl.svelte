@@ -48,7 +48,7 @@
     opacity: 0;
     height: 3px;
     border-radius: 2px;
-    background: linear-gradient(to right, var(--accent) var(--vol), rgba(255,255,255,0.15) var(--vol));
+    background: linear-gradient(to right, var(--accent) var(--vol), var(--fill) var(--vol));
     outline: none;
     cursor: pointer;
     transition: width 0.2s ease, opacity 0.2s ease;
