@@ -8,9 +8,12 @@ use tauri::{AppHandle, Emitter};
 use super::model::PlaybackStatus;
 use super::player::{MediaPlayer, PlayerSource};
 
-/// Poll interval for player state. 500ms is a good balance between
-/// progress-bar smoothness and D-Bus traffic.
-const TICK: Duration = Duration::from_millis(500);
+/// Idle-ish waits: keep progress-bar smoothness while playing,
+/// go nearly dormant otherwise. `wait_event` wakes early on real
+/// player events (MPRIS), so these are ceilings, not polling periods.
+const PLAYING_WAIT_MS: u64 = 600;
+const PAUSED_WAIT_MS: u64 = 4_000;
+const IDLE_WAIT_MS: u64 = 5_000;
 
 /// Coordinates all `PlayerSource`s, picks the "active" player,
 /// and streams state snapshots to the frontend.
@@ -47,11 +50,18 @@ impl PlayerManager {
             // is several D-Bus calls, so re-snapshotting during selection
             // (filter + chosen player) would roughly double our traffic.
             let snaps = self.snapshots();
-            let state = self
-                .pick_active(&snaps)
-                .map(|(_, snap)| snap.clone());
-            self.emit(state);
-            thread::sleep(TICK);
+            let active = self.pick_active(&snaps);
+            self.emit(active.map(|(_, snap)| snap.clone()));
+
+            // Block until a player event fires or the timeout hits.
+            // While paused/idle this makes us nearly dormant.
+            match active {
+                Some((p, s)) => p.wait_event(match s.status {
+                    PlaybackStatus::Playing => PLAYING_WAIT_MS,
+                    _ => PAUSED_WAIT_MS,
+                }),
+                None => thread::sleep(Duration::from_millis(IDLE_WAIT_MS)),
+            }
         }
     }
 

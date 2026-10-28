@@ -31,6 +31,12 @@ pub trait MediaPlayer {
 
     /// Set player volume (0.0 - 1.0). Optional on some backends.
     fn set_volume(&self, _volume: f64) {}
+
+    /// Block until the player's state changes or `timeout_ms` elapses.
+    /// Backends without push notifications just sleep — the default.
+    fn wait_event(&self, timeout_ms: u64) {
+        std::thread::sleep(std::time::Duration::from_millis(timeout_ms));
+    }
 }
 
 /// A source that can discover `MediaPlayer`s on the current platform.

@@ -115,4 +115,17 @@ impl MediaPlayer for MprisPlayer {
     fn set_volume(&self, volume: f64) {
         let _ = self.0.set_volume(volume.clamp(0.0, 1.0));
     }
+
+    fn wait_event(&self, timeout_ms: u64) {
+        // ProgressTracker.tick() blocks until the next D-Bus
+        // PropertiesChanged event *or* the interval elapses — so we
+        // wake instantly on track change/pause, and at worst every
+        // timeout_ms as a fallback.
+        if let Ok(tracker) = self
+            .0
+            .track_progress_events((timeout_ms.max(200)) as u32)
+        {
+            let _ = tracker.tick();
+        }
+    }
 }
