@@ -6,6 +6,7 @@ Cross-platform floating mini player. Stack: Tauri 2 (Rust) + Svelte 5 + Vite + T
 - `src-tauri/src/core/` — backend-agnostic: `model.rs` (PlayerState/TrackMetadata), `player.rs` (`MediaPlayer` + `PlayerSource` traits), `manager.rs` (PlayerManager: discovery, active-player selection, emits `player-state` events every 500ms).
 - `src-tauri/src/platforms/linux/mpris.rs` — MPRIS2 over D-Bus via `mpris` crate (covers Spotify, Firefox, VLC, Amberol, ...). No playerctl subprocess.
 - `src-tauri/src/platforms/macos/spotify.rs` — Spotify via a single `osascript` snapshot script.
+- `src-tauri/src/platforms/windows/smtc.rs` — SMTC sessions via `windows` crate (no volume API → slider hidden).
 - `src-tauri/src/window_pos.rs` — persists window position (JSON in app_data_dir, throttled writes).
 - `src/` — Svelte UI. `lib/stores.ts` listens to `player-state`; auto-hides on `null`, auto-shows only on the no-player→playing transition.
 

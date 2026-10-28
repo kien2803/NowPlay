@@ -24,6 +24,15 @@ serde_json = "1"
 # MPRIS2 over D-Bus — native, no playerctl subprocess needed.
 mpris = "2"
 
+[target.'cfg(target_os = "windows")'.dependencies]
+# SMTC bindings for the Windows media overlay API.
+windows = { version = "0.58", features = [
+    "Media_Control",
+    "Foundation",
+    "Foundation_Collections",
+    "Storage_Streams",
+] }
+
 [profile.dev]
 incremental = true
 

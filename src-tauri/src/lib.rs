@@ -28,6 +28,9 @@ fn build_sources() -> Vec<Box<dyn PlayerSource>> {
     #[cfg(target_os = "macos")]
     sources.push(Box::new(platforms::macos::spotify::SpotifySource));
 
+    #[cfg(target_os = "windows")]
+    sources.push(Box::new(platforms::windows::smtc::SmtcSource));
+
     sources
 }
 

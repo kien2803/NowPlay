@@ -6,7 +6,7 @@
 
 Always-on-top • hotkey-toggleable • works with any player
 
-![Platform](https://img.shields.io/badge/platform-Linux%20%C2%B7%20macOS-blue)
+![Platform](https://img.shields.io/badge/platform-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-blue)
 ![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)
 ![Svelte](https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -37,6 +37,7 @@ Always-on-top • hotkey-toggleable • works with any player
 |---|---|---|
 | **Linux** | MPRIS2 over D-Bus (native, no subprocess) | Spotify, Firefox, Chrome/Chromium, Zen, VLC, Amberol, Rhythmbox, Elisa, mpv, KDE browser integration, … anything MPRIS |
 | **macOS** | AppleScript | Spotify *(Music.app & more planned)* |
+| **Windows** | SMTC (Windows media overlay API) | Spotify, Edge/Chrome, VLC, Media Player, foobar2000, … any app with transport controls |
 
 When several players are running, the one **actually playing** wins; dedicated music players outrank browsers (e.g. Spotify > YouTube in a browser tab).
 
@@ -59,6 +60,8 @@ sudo dnf install -y webkit2gtk4.1-devel libsoup3-devel gtk3-devel \
 # Debian / Ubuntu
 sudo apt install -y libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev \
   libayatana-appindicator3-dev librsvg2-dev libdbus-1-dev
+
+# Windows — MSVC toolchain (rustup default) + Tauri WebView2 (preinstalled on Win10/11)
 
 # macOS — Xcode Command Line Tools only
 xcode-select --install
@@ -94,7 +97,8 @@ src-tauri/src/
 │                        #   polls every 500ms, emits `player-state` events
 ├── platforms/
 │   ├── linux/mpris.rs   # MPRIS2 over D-Bus via the `mpris` crate
-│   └── macos/spotify.rs # Spotify via one osascript snapshot call
+│   ├── macos/spotify.rs # Spotify via one osascript snapshot call
+│   └── windows/smtc.rs   # SMTC sessions (all Windows media apps)
 ├── commands.rs          # play_pause, next_track, previous_track,
 │                        # seek_to, set_volume (Tauri commands)
 ├── window_pos.rs        # window position persistence
@@ -124,7 +128,6 @@ src/                     # Svelte 5 frontend (runes)
 - [ ] Settings UI (hotkey, player priority, themes)
 - [ ] macOS: Music.app & Media Remote sources
 - [ ] Light theme + more palette styles
-- [ ] Windows backend (GSMTC / SMTC)
 
 ## 🤝 Contributing
 
